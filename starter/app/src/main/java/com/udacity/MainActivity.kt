@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -26,6 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     private var downloadID: Long = 0
     private lateinit var downloadUrl: String
+    private lateinit var downloadName: String
     private var radioChecked: Boolean = false
 
     private lateinit var notificationManager: NotificationManager
@@ -50,28 +52,44 @@ class MainActivity : AppCompatActivity() {
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
+            //As explained in mentor question:
+            //https://knowledge.udacity.com/questions/590022
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            val query = DownloadManager.Query()
+                .setFilterById(id!!)
+            val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+            val cursor = downloadManager.query(query)
+            if(cursor.moveToFirst()){
+                val status = cursor.getInt(
+                    cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+                )
+                if (context != null) {
+                    notificationManager = ContextCompat.getSystemService(
+                        context,
+                        NotificationManager::class.java
+                    ) as NotificationManager
+                    notificationManager.sendNotification(context.getString(R.string.notification_description),context,status,downloadName)
+                }
+            }
+
+            //Toast.makeText(context,"Download finished!",Toast.LENGTH_LONG).show()
+
         }
     }
 
     private fun download() {
         if(radioChecked) {
-            notificationManager = ContextCompat.getSystemService(
-                this,
-                NotificationManager::class.java
-            ) as NotificationManager
-            notificationManager.sendNotification(this.getString(R.string.notification_description),this)
-            //        val request =
-//            DownloadManager.Request(Uri.parse(downloadUrl))
-//                .setTitle(getString(R.string.app_name))
-//                .setDescription(getString(R.string.app_description))
-//                .setRequiresCharging(false)
-//                .setAllowedOverMetered(true)
-//                .setAllowedOverRoaming(true)
-//
-//        val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-//        downloadID =
-//            downloadManager.enqueue(request)// enqueue puts the download request in the queue.
+            val request =
+                DownloadManager.Request(Uri.parse(downloadUrl))
+                    .setTitle(getString(R.string.app_name))
+                    .setDescription(getString(R.string.app_description))
+                    .setRequiresCharging(false)
+                    .setAllowedOverMetered(true)
+                    .setAllowedOverRoaming(true)
+
+            val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+            downloadID =
+                downloadManager.enqueue(request)// enqueue puts the download request in the queue.
         } else {
             val message = getString(R.string.selection_required)
             Toast.makeText(this,message,Toast.LENGTH_LONG).show()
@@ -83,11 +101,11 @@ class MainActivity : AppCompatActivity() {
         if(view is RadioButton){
             radioChecked = view.isChecked
             if(radioChecked){
-                downloadUrl = when(view.getId()){
-                    R.id.glid_radio -> GLIDE_URL
-                    R.id.loadapp_radio -> UDACITY_URL
-                    R.id.retrofit_radio -> RETROFIT_URL
-                    else -> ""
+                when(view.getId()){
+                    R.id.glid_radio -> { downloadUrl = GLIDE_URL; downloadName = getString(R.string.glide_radio_text) }
+                    R.id.loadapp_radio -> { downloadUrl = UDACITY_URL; downloadName = getString(R.string.loadapp_radio_text)}
+                    R.id.retrofit_radio -> { downloadUrl = RETROFIT_URL; downloadName = getString(R.string.retrofit_radio_text) }
+                    else -> { downloadUrl = ""; downloadName = ""}
                 }
             }
         }
@@ -117,8 +135,8 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val UDACITY_URL =
             "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip"
-        private const val GLIDE_URL = ""
-        private const val RETROFIT_URL = ""
+        private const val GLIDE_URL = "https://github.com/bumptech/glide/archive/master.zip"
+        private const val RETROFIT_URL = "https://github.com/square/retrofit/master.zip"
         private const val CHANNEL_ID = "channelId"
     }
 
