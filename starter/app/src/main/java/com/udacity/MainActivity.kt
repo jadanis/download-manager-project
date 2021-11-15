@@ -45,8 +45,9 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
         custom_button.setOnClickListener {
+            it.isEnabled = false
+            custom_button.buttonState = ButtonState.Loading
             download()
-            //custom_button.buttonState = ButtonState.Loading
         }
     }
 
@@ -54,6 +55,8 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             //As explained in mentor question:
             //https://knowledge.udacity.com/questions/590022
+            custom_button.buttonState = ButtonState.Completed
+            custom_button.isEnabled = true
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             val query = DownloadManager.Query()
                 .setFilterById(id!!)
@@ -68,6 +71,7 @@ class MainActivity : AppCompatActivity() {
                         context,
                         NotificationManager::class.java
                     ) as NotificationManager
+                    TODO("Remove hard code string from notification")
                     notificationManager.sendNotification(context.getString(R.string.notification_description),context,status,downloadName)
                 }
             }
