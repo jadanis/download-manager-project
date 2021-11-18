@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
                         context,
                         NotificationManager::class.java
                     ) as NotificationManager
-                    TODO("Remove hard code string from notification")
+                    
                     notificationManager.sendNotification(context.getString(R.string.notification_description),context,status,downloadName)
                 }
             }

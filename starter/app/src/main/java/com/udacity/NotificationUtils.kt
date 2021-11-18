@@ -1,5 +1,6 @@
 package com.udacity
 
+import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -31,11 +32,12 @@ fun NotificationManager.sendNotification(messageBody: String, applicationContext
         .setContentText(messageBody)
         .setContentIntent(contentPendingIntent)
         .setAutoCancel(true)
-//        .addAction(
-//            R.drawable.ic_assistant_black_24dp,
-//            applicationContext.getString(R.string.check_status),
-//            contentPendingIntent
-//        )
+        .setStyle(NotificationCompat.BigTextStyle())
+        .addAction(
+            R.drawable.ic_assistant_black_24dp,
+            applicationContext.getString(R.string.check_status),
+            contentPendingIntent
+        )
 
     notify(NOTIFICATION_ID,builder.build())
 
